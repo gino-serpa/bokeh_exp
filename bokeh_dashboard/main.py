@@ -11,9 +11,9 @@ import random
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 
-def get_fake_data(n_s_label=5):
+def get_fake_data(n_s_label=5, seed=19):
 
-    random.seed(a=19)
+    random.seed(a=seed)
 
     # Initialize data dict
     data = {'s_label'+str(i): {'labels':[],
@@ -62,6 +62,29 @@ def get_traces_df_dict(data_df):
 
     return traces_dict
 
+def get_bubble_plot(traces_CDS):
+    TOOLS = "tap,box_zoom,reset,wheel_zoom"
+    bubble_plot = figure(tools=TOOLS)
+    traces={}
+    for s_label in traces_CDS:
+        traces[s_label] = bubble_plot.circle(x='x',
+                                   y='y',
+                                   color='color',
+                                   size='size',
+                                   fill_alpha = 0.3,
+                                   line_color = 'grey',
+                                   source=traces_CDS[s_label])
+        s_label_color = list(traces_df_dict[s_label]['color'])[0]
+        traces[s_label].selection_glyph = \
+                        Circle(fill_alpha=0.7,
+                               fill_color=s_label_color,
+                               line_color="red")
+        traces[s_label].nonselection_glyph = \
+                        Circle(fill_alpha= 0.3,
+                               fill_color= s_label_color,
+                               line_color="grey")
+    return bubble_plot
+
 '''---------------------------------------------------------------
 
                                 main
@@ -69,39 +92,22 @@ def get_traces_df_dict(data_df):
 ---------------------------------------------------------------'''
 
 
-# Create a fake data frame
-data_df = get_fake_data()
-print(data_df.head())
+# Create a fake data frame. This is part of what data.gz would provide
+data_df = get_fake_data(seed=17)
 
+# Each supelabel has a trace and each trace feeds
+# from its ColumnDataSource (CDS)
 traces_df_dict = get_traces_df_dict(data_df)
-
 traces_CDS = {}
 for s_label in traces_df_dict:
     traces_CDS[s_label]=ColumnDataSource(traces_df_dict[s_label])
 
-# Create dashboard elements
-# given the traces CDS's make one plot for each trace
-TOOLS = "tap,box_zoom,reset,wheel_zoom"
-p = figure(tools=TOOLS)
-traces={}
-for s_label in traces_CDS:
-    traces[s_label] = p.circle(x='x',
-                               y='y',
-                               color='color',
-                               size='size',
-                               fill_alpha = 0.3,
-                               line_color = 'grey',
-                               source=traces_CDS[s_label])
-    s_label_color = list(traces_df_dict[s_label]['color'])[0]
-    traces[s_label].selection_glyph = \
-                    Circle(fill_alpha=0.7,
-                           fill_color=s_label_color,
-                           line_color="red")
-    traces[s_label].nonselection_glyph = \
-                    Circle(fill_alpha= 0.3,
-                           fill_color= s_label_color,
-                           line_color="grey")
+#                       Create dashboard elements
 
+# bubble_plot element
+bubble_plot = get_bubble_plot(traces_CDS)
+
+# text_input object
 text_input = TextInput(value="default", title="Label:")
 
 
@@ -117,4 +123,4 @@ def my_text_input_handler(attr, old, new):
 text_input.on_change("value", my_text_input_handler)
 
 # Place elements in the dashboard
-curdoc().add_root(row(text_input,p))
+curdoc().add_root(row(text_input,bubble_plot))
