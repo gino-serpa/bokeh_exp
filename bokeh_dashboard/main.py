@@ -1,8 +1,9 @@
 # Bunch of imports
 from bokeh.plotting import figure, curdoc
-from bokeh.models import ColumnDataSource
+from bokeh.models import ColumnDataSource, Circle
 from bokeh.models.widgets import TextInput
 from bokeh.layouts import row
+
 
 import pandas as pd
 import random
@@ -80,7 +81,8 @@ for s_label in traces_df_dict:
 
 # Create dashboard elements
 # given the traces CDS's make one plot for each trace
-p = figure()
+TOOLS = "tap,box_zoom,reset,wheel_zoom"
+p = figure(tools=TOOLS)
 traces={}
 for s_label in traces_CDS:
     traces[s_label] = p.circle(x='x',
@@ -88,9 +90,17 @@ for s_label in traces_CDS:
                                color='color',
                                size='size',
                                fill_alpha = 0.3,
+                               line_color = 'grey',
                                source=traces_CDS[s_label])
-
-
+    s_label_color = list(traces_df_dict[s_label]['color'])[0]
+    traces[s_label].selection_glyph = \
+                    Circle(fill_alpha=0.7,
+                           fill_color=s_label_color,
+                           line_color="red")
+    traces[s_label].nonselection_glyph = \
+                    Circle(fill_alpha= 0.3,
+                           fill_color= s_label_color,
+                           line_color="grey")
 
 text_input = TextInput(value="default", title="Label:")
 
