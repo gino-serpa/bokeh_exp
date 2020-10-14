@@ -1,6 +1,9 @@
 # Bunch of imports
 from bokeh.plotting import figure, curdoc
 from bokeh.models import ColumnDataSource
+from bokeh.models.widgets import TextInput
+from bokeh.layouts import row
+
 import pandas as pd
 import random
 
@@ -42,7 +45,7 @@ def get_fake_data(n_s_label=5):
     data_df = data_df.sample(frac=1).reset_index(drop=True)
     data_df = data_df.reset_index()
     data_df = data_df.rename(columns={'index':'Topic Index'})
-    
+
     return data_df
 
 
@@ -86,9 +89,16 @@ for s_label in traces_CDS:
                                size='size',
                                source=traces_CDS[s_label])
 
+
+
+text_input = TextInput(value="default", title="Label:")
+
+
 # Define interactivity
-
-
+def my_text_input_handler(attr, old, new):
+    print("Previous label: " + old)
+    print("Updated label: " + new)
+text_input.on_change("value", my_text_input_handler)
 
 # Place elements in the dashboard
-curdoc().add_root(p)
+curdoc().add_root(row(text_input,p))
