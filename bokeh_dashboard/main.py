@@ -4,28 +4,46 @@ from bokeh.models import ColumnDataSource
 import pandas as pd
 import random
 
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
+
 def get_fake_data(n_s_label=5):
 
     random.seed(a=19)
-    s_labels = [ ('s_label'+str(i),random.rand_range(4,10))
-                         for i in range(n_s_label) ]
-    s_label_label = []
-    for s_label, size in s_labels:
-        for topic in range(size):
-            pair = (s_label,s_label+str(topic))
-            s_label_label.append(pair)
-    s_label_label.sort(key= lambda x:random.random())
 
+    # Initialize data dict
+    data = {'s_label'+str(i): {'labels':[],
+                               'x':[],
+                               'y':[],
+                               'size':[],
+                               'color':{}}
+                               for i in range(n_s_label)}
+    # Select a color for each s_label
+    s_colors = random.sample( list(mcolors.CSS4_COLORS.keys()), n_s_label)
+    s_label_color={ 's_label'+str(i):s_colors[i] for i in range(n_s_label)}
 
-    data_dict = {'super label':super_label,
-                 'label':      ['tomato','potato','dog','leek','cat'],
-                 'x':[i for i in range(5)],
-                 'y':[i*i for i in range(5)],
-                 'size':[5+i for i in range(5)],
-                 'color':['red','red','blue','red','blue']}
-    print(data_dict)
-    fake_data = pd.DataFrame(data_dict)
-    return fake_data
+    print('s_colors ',s_colors)
+
+    # Fill the dictionary
+    list_of_df = []
+    for s_label in data:
+        n_labels=random.randrange(4,10)
+        data[s_label]['labels'] = [ s_label+'_'+str(i) for i in range(n_labels)]
+        data[s_label]['x']      = [random.uniform(0,10) for i in range(n_labels)]
+        data[s_label]['y']      = [random.uniform(0,10) for i in range(n_labels)]
+        data[s_label]['size']   = [random.uniform(10,50) for i in range(n_labels)]
+        data[s_label]['color']  = n_labels*[s_label_color[s_label]]
+
+        df = pd.DataFrame(data[s_label])
+        df['super label'] = n_labels *[s_label]
+        list_of_df.append(df)
+
+    data_df = pd.concat(list_of_df)
+    data_df = data_df.sample(frac=1).reset_index(drop=True)
+    data_df = data_df.reset_index()
+    data_df = data_df.rename(columns={'index':'Topic Index'})
+    
+    return data_df
 
 
 def get_traces_df_dict(data_df):
@@ -47,7 +65,7 @@ def get_traces_df_dict(data_df):
 ---------------------------------------------------------------'''
 
 
-# Create a data frame with 3 potential plots
+# Create a fake data frame
 data_df = get_fake_data()
 print(data_df.head())
 
@@ -55,7 +73,6 @@ traces_df_dict = get_traces_df_dict(data_df)
 
 traces_CDS = {}
 for s_label in traces_df_dict:
-    print(s_label, traces_df_dict[s_label])
     traces_CDS[s_label]=ColumnDataSource(traces_df_dict[s_label])
 
 # Create dashboard elements
