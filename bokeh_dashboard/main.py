@@ -80,13 +80,14 @@ for s_label in traces_df_dict:
 
 # Create dashboard elements
 # given the traces CDS's make one plot for each trace
-p=figure()
+p = figure()
 traces={}
 for s_label in traces_CDS:
     traces[s_label] = p.circle(x='x',
                                y='y',
                                color='color',
                                size='size',
+                               fill_alpha = 0.3,
                                source=traces_CDS[s_label])
 
 
@@ -98,6 +99,11 @@ text_input = TextInput(value="default", title="Label:")
 def my_text_input_handler(attr, old, new):
     print("Previous label: " + old)
     print("Updated label: " + new)
+    try:
+        int(new)
+    except ValueError:
+        print('Please enter a valid topic number')
+    return
 text_input.on_change("value", my_text_input_handler)
 
 # Place elements in the dashboard
